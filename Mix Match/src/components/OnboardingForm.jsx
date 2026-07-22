@@ -8,9 +8,9 @@ const SHOE_SIZE_OPTIONS = Array.from({ length: 21 }, (_, i) => (4 + i * 0.5).toS
 export default function OnboardingForm({ userId, onComplete }) {
   const [firstName, setFirstName] = useState('')
   const [sizeTopSystem, setSizeTopSystem] = useState('Alpha')
-  const [sizeTop, setSizeTop] = useState('')
+  const [sizeTopValues, setSizeTopValues] = useState({})
   const [sizeBottomSystem, setSizeBottomSystem] = useState('Alpha')
-  const [sizeBottom, setSizeBottom] = useState('')
+  const [sizeBottomValues, setSizeBottomValues] = useState({})
   const [sizeShoe, setSizeShoe] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -24,10 +24,12 @@ export default function OnboardingForm({ userId, onComplete }) {
       .from('profiles')
       .update({
         first_name: firstName.trim(),
-        size_top: sizeTop,
+        size_top: sizeTopValues[sizeTopSystem] || '',
         size_top_system: sizeTopSystem,
-        size_bottom: sizeBottom,
+        size_top_values: sizeTopValues,
+        size_bottom: sizeBottomValues[sizeBottomSystem] || '',
         size_bottom_system: sizeBottomSystem,
+        size_bottom_values: sizeBottomValues,
         size_shoe: sizeShoe,
       })
       .eq('id', userId)
@@ -75,8 +77,8 @@ export default function OnboardingForm({ userId, onComplete }) {
             label="Top"
             system={sizeTopSystem}
             onSystemChange={setSizeTopSystem}
-            value={sizeTop}
-            onValueChange={setSizeTop}
+            value={sizeTopValues[sizeTopSystem] || ''}
+            onValueChange={(val) => setSizeTopValues(prev => ({ ...prev, [sizeTopSystem]: val }))}
             allowedSystems={['US', 'Alpha']}
           />
 
@@ -84,8 +86,8 @@ export default function OnboardingForm({ userId, onComplete }) {
             label="Bottom"
             system={sizeBottomSystem}
             onSystemChange={setSizeBottomSystem}
-            value={sizeBottom}
-            onValueChange={setSizeBottom}
+            value={sizeBottomValues[sizeBottomSystem] || ''}
+            onValueChange={(val) => setSizeBottomValues(prev => ({ ...prev, [sizeBottomSystem]: val }))}
             allowedSystems={['US', 'Alpha', 'Denim']}
           />
 

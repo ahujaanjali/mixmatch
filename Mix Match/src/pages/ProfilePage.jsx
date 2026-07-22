@@ -13,9 +13,9 @@ export default function ProfilePage() {
   const [email, setEmail] = useState('')
   const [firstName, setFirstName] = useState('')
   const [sizeTopSystem, setSizeTopSystem] = useState('Alpha')
-  const [sizeTop, setSizeTop] = useState('')
+  const [sizeTopValues, setSizeTopValues] = useState({})
   const [sizeBottomSystem, setSizeBottomSystem] = useState('Alpha')
-  const [sizeBottom, setSizeBottom] = useState('')
+  const [sizeBottomValues, setSizeBottomValues] = useState({})
   const [sizeShoe, setSizeShoe] = useState('')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -35,7 +35,7 @@ export default function ProfilePage() {
 
     const { data, error } = await supabase
       .from('profiles')
-      .select('first_name, size_top, size_top_system, size_bottom, size_bottom_system, size_shoe')
+      .select('first_name, size_top_system, size_top_values, size_bottom_system, size_bottom_values, size_shoe')
       .eq('id', user.id)
       .single()
 
@@ -43,9 +43,9 @@ export default function ProfilePage() {
       console.error('Error loading profile:', error)
     } else if (data) {
       setFirstName(data.first_name || '')
-      setSizeTop(data.size_top || '')
+      setSizeTopValues(data.size_top_values || {})
       setSizeTopSystem(data.size_top_system || 'Alpha')
-      setSizeBottom(data.size_bottom || '')
+      setSizeBottomValues(data.size_bottom_values || {})
       setSizeBottomSystem(data.size_bottom_system || 'Alpha')
       setSizeShoe(data.size_shoe || '')
     }
@@ -64,10 +64,12 @@ export default function ProfilePage() {
       .from('profiles')
       .update({
         first_name: firstName.trim(),
-        size_top: sizeTop,
+        size_top: sizeTopValues[sizeTopSystem] || '',
         size_top_system: sizeTopSystem,
-        size_bottom: sizeBottom,
+        size_top_values: sizeTopValues,
+        size_bottom: sizeBottomValues[sizeBottomSystem] || '',
         size_bottom_system: sizeBottomSystem,
+        size_bottom_values: sizeBottomValues,
         size_shoe: sizeShoe,
       })
       .eq('id', user.id)
@@ -131,8 +133,8 @@ export default function ProfilePage() {
               label="Top"
               system={sizeTopSystem}
               onSystemChange={setSizeTopSystem}
-              value={sizeTop}
-              onValueChange={setSizeTop}
+              value={sizeTopValues[sizeTopSystem] || ''}
+              onValueChange={(val) => setSizeTopValues(prev => ({ ...prev, [sizeTopSystem]: val }))}
               allowedSystems={['US', 'Alpha']}
             />
 
@@ -140,8 +142,8 @@ export default function ProfilePage() {
               label="Bottom"
               system={sizeBottomSystem}
               onSystemChange={setSizeBottomSystem}
-              value={sizeBottom}
-              onValueChange={setSizeBottom}
+              value={sizeBottomValues[sizeBottomSystem] || ''}
+              onValueChange={(val) => setSizeBottomValues(prev => ({ ...prev, [sizeBottomSystem]: val }))}
               allowedSystems={['US', 'Alpha', 'Denim']}
             />
 

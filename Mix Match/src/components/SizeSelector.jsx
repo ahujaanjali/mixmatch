@@ -38,9 +38,24 @@ export default function SizeSelector({ label, system, onSystemChange, value, onV
     // stash whatever is currently entered under the system we're leaving
     cacheRef.current[system] = value;
     onSystemChange(key);
-    // restore whatever was previously entered under the system we're entering
-    onValueChange(cacheRef.current[key] ?? '');
+    // NOTE: we no longer call onValueChange here. Doing so immediately after
+    // onSystemChange caused a stale-closure bug: the parent's onValueChange
+    // handler still closed over the OLD `system` value (React hadn't
+    // re-rendered yet), so the restored value got written into the wrong
+    // system's slot. Instead, we restore in the effect below, which runs
+    // after the parent has actually re-rendered with the new `system`.
   };
+
+  // Restore the cached value for a system once we've actually switched to it
+  // (i.e. after the parent's `system` prop has updated), so the parent's
+  // onValueChange closure sees the correct, up-to-date system.
+  useEffect(() => {
+    const cached = cacheRef.current[system];
+    if (cached !== undefined && cached !== value) {
+      onValueChange(cached);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [system]);
 
   return (
     <div>
