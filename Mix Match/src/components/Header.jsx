@@ -1,8 +1,14 @@
-import { Plus } from 'lucide-react';
+import { User, LogOut } from 'lucide-react';
 import { colors } from '../constants/colors';
 import { Link } from 'react-router-dom'
+import { supabase } from '../supabaseClient'
 
 function Header({ onPostClick}) {
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    // onAuthStateChange in App.jsx handles redirecting to the login screen
+  };
+
   return (
     <header 
       className="shadow-lg"
@@ -18,7 +24,7 @@ function Header({ onPostClick}) {
                 Mix Match
             </h1>
           </div>
-          <div className="flex gap-4">
+          <div className="flex items-center gap-4">
 
             <Link
               to="/"
@@ -35,6 +41,26 @@ function Header({ onPostClick}) {
             >
               Saved Outfits
             </Link>
+
+            <Link
+              to="/profile"
+              aria-label="Profile"
+              title="Profile"
+              className="bg-white p-2.5 rounded-lg flex items-center justify-center"
+              style={{ color: colors.banner }}
+            >
+              <User size={20} />
+            </Link>
+
+            <button
+              onClick={handleLogout}
+              aria-label="Log out"
+              title="Log out"
+              className="bg-white p-2.5 rounded-lg flex items-center justify-center"
+              style={{ color: colors.banner }}
+            >
+              <LogOut size={20} />
+            </button>
           </div>
         </div>
       </div>

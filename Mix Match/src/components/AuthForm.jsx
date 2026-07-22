@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { supabase } from '../supabaseClient'
+import { colors } from '../constants/colors'
 
 export default function AuthForm({ onAuthSuccess }) {
   const [mode, setMode] = useState('login') // 'login' or 'signup'
@@ -24,7 +25,6 @@ export default function AuthForm({ onAuthSuccess }) {
         return
       }
 
-      // If "Confirm email" is on in Supabase, there's no session yet.
       if (!data.session) {
         setMessage('Check your email to confirm your account before logging in.')
         return
@@ -45,18 +45,18 @@ export default function AuthForm({ onAuthSuccess }) {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-neutral-50 px-4">
-      <div className="w-full max-w-sm">
+    <div className="min-h-screen flex items-center justify-center px-4" style={{ backgroundColor: colors.background }}>
+      <div className="w-full max-w-sm rounded-lg shadow-lg p-8" style={{ backgroundColor: colors.card }}>
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-semibold text-neutral-900">Mix Match</h1>
-          <p className="text-sm text-neutral-500 mt-1">
+          <h1 className="font-serif text-4xl font-bold" style={{ color: colors.text }}>Mix Match</h1>
+          <p className="text-sm mt-2" style={{ color: colors.text, opacity: 0.7 }}>
             {mode === 'login' ? 'Log in to your closet' : 'Create your account'}
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-neutral-700 mb-1">
+            <label htmlFor="email" className="block text-sm font-medium mb-1" style={{ color: colors.text }}>
               Email
             </label>
             <input
@@ -65,14 +65,14 @@ export default function AuthForm({ onAuthSuccess }) {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm
-                         focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:border-transparent"
+              className="w-full px-3 py-2 border rounded text-sm"
+              style={{ borderColor: colors.buttons, color: colors.text }}
               placeholder="you@example.com"
             />
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-neutral-700 mb-1">
+            <label htmlFor="password" className="block text-sm font-medium mb-1" style={{ color: colors.text }}>
               Password
             </label>
             <input
@@ -82,31 +82,35 @@ export default function AuthForm({ onAuthSuccess }) {
               minLength={6}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm
-                         focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:border-transparent"
+              className="w-full px-3 py-2 border rounded text-sm"
+              style={{ borderColor: colors.buttons, color: colors.text }}
               placeholder="••••••••"
             />
           </div>
 
           {error && (
-            <p className="text-sm text-red-600 bg-red-50 rounded-md px-3 py-2">{error}</p>
+            <p className="text-sm rounded-md px-3 py-2" style={{ backgroundColor: '#FBEAEA', color: '#B3261E' }}>
+              {error}
+            </p>
           )}
 
           {message && (
-            <p className="text-sm text-emerald-700 bg-emerald-50 rounded-md px-3 py-2">{message}</p>
+            <p className="text-sm rounded-md px-3 py-2" style={{ backgroundColor: colors.buttons, color: colors.text }}>
+              {message}
+            </p>
           )}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-neutral-900 text-white text-sm font-medium rounded-lg py-2.5
-                       hover:bg-neutral-800 transition disabled:opacity-50"
+            className="w-full font-semibold rounded-lg py-2.5 transition disabled:opacity-50 hover:opacity-90"
+            style={{ backgroundColor: colors.banner, color: colors.text }}
           >
             {loading ? 'Please wait…' : mode === 'login' ? 'Log in' : 'Sign up'}
           </button>
         </form>
 
-        <p className="text-center text-sm text-neutral-500 mt-6">
+        <p className="text-center text-sm mt-6" style={{ color: colors.text, opacity: 0.8 }}>
           {mode === 'login' ? "Don't have an account?" : 'Already have an account?'}{' '}
           <button
             type="button"
@@ -115,7 +119,8 @@ export default function AuthForm({ onAuthSuccess }) {
               setError(null)
               setMessage(null)
             }}
-            className="text-neutral-900 font-medium underline underline-offset-2"
+            className="font-semibold underline underline-offset-2"
+            style={{ color: colors.text }}
           >
             {mode === 'login' ? 'Sign up' : 'Log in'}
           </button>

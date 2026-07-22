@@ -6,7 +6,7 @@ function ItemDetailModal({ item, onClose, onDelete }) {
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-lg" style={{ backgroundColor: colors.card }}>
         <div className="relative">
           <img
             src={item.image}
@@ -16,31 +16,58 @@ function ItemDetailModal({ item, onClose, onDelete }) {
           <button
             onClick={onClose}
             className="absolute top-4 right-4 bg-white rounded-full p-2"
+            style={{ color: colors.text }}
           >
             <X size={20} />
           </button>
         </div>
-        
+
         <div className="p-6">
           <div className="flex justify-between items-start mb-4">
             <div>
-              <h2 className="text-2xl font-bold" style={{ color: colors.text }}>
+              <h2 className="font-serif text-2xl font-bold" style={{ color: colors.text }}>
                 {item.name}
               </h2>
-              <div className="flex items-center gap-4 text-sm" style={{ color: colors.text }}>
-                <div className="flex items-center gap-1">
-                  <span>{item.color}</span>
-                </div>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {item.brand && (
+                  <span
+                    className="px-2 py-1 rounded-full text-xs font-medium"
+                    style={{ backgroundColor: colors.buttons, color: colors.text }}
+                  >
+                    {item.brand}
+                  </span>
+                )}
+                {item.category && (
+                  <span
+                    className="px-2 py-1 rounded-full text-xs font-medium"
+                    style={{ backgroundColor: colors.buttons, color: colors.text }}
+                  >
+                    {item.category}
+                  </span>
+                )}
+                {item.color && (
+                  <span
+                    className="px-2 py-1 rounded-full text-xs font-medium"
+                    style={{ backgroundColor: colors.buttons, color: colors.text }}
+                  >
+                    {item.color}
+                  </span>
+                )}
               </div>
             </div>
-            <span className="mb-6 tex-left" style={{ color: colors.primary }}>
-              {item.frequency_of_wear}
-            </span>
+            <div
+              className="px-3 py-1.5 rounded-lg text-sm font-semibold text-center"
+              style={{ backgroundColor: colors.banner, color: colors.text }}
+            >
+              Worn {item.frequency_of_wear}x
+            </div>
           </div>
 
-          <p className="mb-6 text-left" style={{ color: colors.text }}>
-            {item.size}
-          </p>
+          {item.size && (
+            <p className="mb-6 text-left text-sm" style={{ color: colors.text, opacity: 0.8 }}>
+              Size: {item.size}
+            </p>
+          )}
 
           <div className="flex gap-3">
             <button
@@ -50,7 +77,8 @@ function ItemDetailModal({ item, onClose, onDelete }) {
                   onClose();
                 }
               }}
-              className="px-4 py-3 border border-red-300 text-red-600 rounded flex items-center gap-2"
+              className="px-4 py-3 rounded flex items-center gap-2 font-semibold"
+              style={{ backgroundColor: '#FBEAEA', color: '#B3261E' }}
             >
               <Trash2 size={20} />
               Delete

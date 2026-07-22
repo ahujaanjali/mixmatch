@@ -5,7 +5,11 @@ import ItemsGrid from '../components/ItemsGrid';
 import CreateItemModal from '../components/CreateItemModal';
 import Header from '../components/Header';
 
-function MainPage({ items, onCreateItem, onDeleteItem, onUpdateFrequency}) {
+// Keep these in sync with CreateItemModal.jsx
+const SIZELESS_CATEGORIES = ['Hat', 'Accessories'];
+const COLORLESS_CATEGORIES = ['Hat'];
+
+function MainPage({ items, onCreateItem, onDeleteItem, onUpdateFrequency }) {
   console.log(items);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
@@ -14,6 +18,7 @@ function MainPage({ items, onCreateItem, onDeleteItem, onUpdateFrequency}) {
     brand: "",
     category: "",
     size: "",
+    size_system: "Alpha",
     color: "",
     image: "",
     frequency_of_wear: 0
@@ -21,8 +26,12 @@ function MainPage({ items, onCreateItem, onDeleteItem, onUpdateFrequency}) {
 
 
   const handleCreateItem = () => {
+    const sizeRequired = !SIZELESS_CATEGORIES.includes(formData.category);
+    const colorRequired = !COLORLESS_CATEGORIES.includes(formData.category);
+
     if (!formData.name || !formData.brand || !formData.category
-      || !formData.size || !formData.color
+      || (sizeRequired && !formData.size)
+      || (colorRequired && !formData.color)
       || !formData.image || !formData.frequency_of_wear) {
       alert("Please fill in all boxes");
       return;
@@ -34,6 +43,7 @@ function MainPage({ items, onCreateItem, onDeleteItem, onUpdateFrequency}) {
       brand: "",
       category: "",
       size: "",
+      size_system: "Alpha",
       color: "",
       image: "",
       frequency_of_wear: 0
@@ -54,8 +64,11 @@ function MainPage({ items, onCreateItem, onDeleteItem, onUpdateFrequency}) {
         onPostClick={() => setShowCreateModal(true)}
       />
 
-      <main className="max-w-6xl mx-auto px-4 py-8">
-        <div className="flex justify-end mb-6">
+      <main className="max-w-6xl mx-auto px-4 py-6">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="font-serif text-2xl font-bold" style={{ color: colors.text }}>
+            Your Closet
+          </h2>
           <button
             onClick={() => setShowCreateModal(true)}
             className="bg-white px-4 py-2 rounded-lg font-semibold flex items-center gap-2"

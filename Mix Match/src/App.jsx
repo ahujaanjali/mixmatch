@@ -3,9 +3,11 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import './App.css';
 import { supabase } from './supabaseClient';
 import AuthForm from './components/AuthForm';
+import OnboardingForm from './components/OnboardingForm';
 
 import MainPage from './pages/MainPage';
 import SavedOutfitPage from './pages/SavedOutfitPage';
+import ProfilePage from './pages/ProfilePage';
 
 function AppInner() {
   const [items, setItems] = useState([]);
@@ -52,6 +54,8 @@ function AppInner() {
   }
 
   const handleCreateItem = async (id) => {
+    const { data: { user } } = await supabase.auth.getUser();
+
     const { data, error } = await supabase
       .from('item')
       .insert([{
@@ -59,9 +63,11 @@ function AppInner() {
         brand: id.brand,
         category: id.category,
         size: id.size,
+        size_system: id.size_system,
         color: id.color,
         image: id.image,
-        frequency_of_wear: Number(id.frequency_of_wear)
+        frequency_of_wear: Number(id.frequency_of_wear),
+        user_id: user.id
       }])
       .select();
     if (error) { alert(error.message); return; }
@@ -75,22 +81,6 @@ function AppInner() {
   };
 
   const handleUpdateFrequency = async (id, newFrequency) => {
-  // optimistic UI update
-  setItems(prev =>
-    prev.map(i => (i.id === id ? { ...i, frequency_of_wear: newFrequency } : i))
-  );
-
-  const { error } = await supabase
-    .from('item')
-    .update({ frequency_of_wear: newFrequency })
-    .eq('id', id);
-
-  if (error) {
-    alert(error.message);
-    // revert on failure
-    fetchAllData();
-  }
-};
     // optimistic UI update
     setItems(prev =>
       prev.map(i => (i.id === id ? { ...i, frequency_of_wear: newFrequency } : i))
@@ -109,9 +99,12 @@ function AppInner() {
   };
 
   const handleCreateOutfit = async ({ name, selectedItemIds }) => {
+    const { data: { user } } = await supabase.auth.getUser();
+
     const newOutfit = {
       outfit_type: name?.trim(),
       items: selectedItemIds ?? [],
+      user_id: user.id,
     };
 
     const { data, error } = await supabase
@@ -176,6 +169,7 @@ function AppInner() {
               />
             }
           />
+          <Route path="/profile" element={<ProfilePage />} />
         </Routes>
       )}
     </>
@@ -185,6 +179,8 @@ function AppInner() {
 function App() {
   const [session, setSession] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const [profile, setProfile] = useState(null);
+  const [profileLoading, setProfileLoading] = useState(true);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -199,10 +195,43 @@ function App() {
     return () => listener.subscription.unsubscribe();
   }, []);
 
-  if (authLoading) return null; // or a spinner
+  useEffect(() => {
+    if (!session) {
+      setProfile(null);
+      setProfileLoading(false);
+      return;
+    }
+
+    setProfileLoading(true);
+    supabase
+      .from('profiles')
+      .select('id, first_name, size_top, size_bottom, size_shoe')
+      .eq('id', session.user.id)
+      .single()
+      .then(({ data, error }) => {
+        if (error) {
+          console.error('Error fetching profile:', error);
+        }
+        setProfile(data || null);
+        setProfileLoading(false);
+      });
+  }, [session]);
+
+  if (authLoading || (session && profileLoading)) return null; // or a spinner
 
   if (!session) {
     return <AuthForm onAuthSuccess={setSession} />;
+  }
+
+  const needsOnboarding = !profile || !profile.first_name;
+
+  if (needsOnboarding) {
+    return (
+      <OnboardingForm
+        userId={session.user.id}
+        onComplete={(updatedProfile) => setProfile(updatedProfile)}
+      />
+    );
   }
 
   return (
