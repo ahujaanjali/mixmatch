@@ -75,6 +75,22 @@ function AppInner() {
   };
 
   const handleUpdateFrequency = async (id, newFrequency) => {
+  // optimistic UI update
+  setItems(prev =>
+    prev.map(i => (i.id === id ? { ...i, frequency_of_wear: newFrequency } : i))
+  );
+
+  const { error } = await supabase
+    .from('item')
+    .update({ frequency_of_wear: newFrequency })
+    .eq('id', id);
+
+  if (error) {
+    alert(error.message);
+    // revert on failure
+    fetchAllData();
+  }
+};
     // optimistic UI update
     setItems(prev =>
       prev.map(i => (i.id === id ? { ...i, frequency_of_wear: newFrequency } : i))

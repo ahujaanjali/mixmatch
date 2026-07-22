@@ -1,6 +1,6 @@
 import ItemCard from './ItemCard';
 
-function ItemsGrid({ items, onItemClick, onDeleteItem }) {
+function ItemsGrid({ items, onItemClick, onDeleteItem, onUpdateFrequency }) {
   if(!items || items.length == 0) {
     return (
       <div className="text-center text-gray-500 mt-10">
@@ -17,6 +17,7 @@ function ItemsGrid({ items, onItemClick, onDeleteItem }) {
           item={item}
           onClick={() => onItemClick(item)}
           onDelete={onDeleteItem}
+          onUpdateFrequency={onUpdateFrequency}
         />
       ))}
     </div>
