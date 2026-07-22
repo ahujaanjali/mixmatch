@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import './App.css';
 import { supabase } from './supabaseClient';
+import AuthForm from './components/AuthForm';
 
 import MainPage from './pages/MainPage';
 import SavedOutfitPage from './pages/SavedOutfitPage';
@@ -90,6 +91,22 @@ function AppInner() {
     fetchAllData();
   }
 };
+    // optimistic UI update
+    setItems(prev =>
+      prev.map(i => (i.id === id ? { ...i, frequency_of_wear: newFrequency } : i))
+    );
+
+    const { error } = await supabase
+      .from('item')
+      .update({ frequency_of_wear: newFrequency })
+      .eq('id', id);
+
+    if (error) {
+      alert(error.message);
+      // revert on failure
+      fetchAllData();
+    }
+  };
 
   const handleCreateOutfit = async ({ name, selectedItemIds }) => {
     const newOutfit = {
@@ -165,10 +182,34 @@ function AppInner() {
   );
 }
 
-export default function App() {
+function App() {
+  const [session, setSession] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setAuthLoading(false);
+    });
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => listener.subscription.unsubscribe();
+  }, []);
+
+  if (authLoading) return null; // or a spinner
+
+  if (!session) {
+    return <AuthForm onAuthSuccess={setSession} />;
+  }
+
   return (
     <BrowserRouter>
       <AppInner />
     </BrowserRouter>
   );
 }
+
+export default App;
