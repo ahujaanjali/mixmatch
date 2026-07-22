@@ -5,7 +5,7 @@ import ItemsGrid from '../components/ItemsGrid';
 import CreateItemModal from '../components/CreateItemModal';
 import Header from '../components/Header';
 
-function MainPage({ items, onCreateItem, onDeleteItem}) {
+function MainPage({ items, onCreateItem, onDeleteItem, onUpdateFrequency}) {
   console.log(items);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
@@ -69,6 +69,7 @@ function MainPage({ items, onCreateItem, onDeleteItem}) {
           items={items}
           onItemClick={setSelectedItem}
           onDeleteItem={handleDeleteItem}
+          onUpdateFrequency={onUpdateFrequency}
         />
         
       </main>

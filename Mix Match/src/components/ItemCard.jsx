@@ -1,7 +1,7 @@
-import { Trash2 } from 'lucide-react';
+import { Trash2, Plus, Minus } from 'lucide-react';
 import { colors } from '../constants/colors';
 
-function ItemCard({ item, onClick, onDelete }) {
+function ItemCard({ item, onClick, onDelete, onUpdateFrequency}) {
   return (
     <div
       onClick={onClick}
@@ -39,22 +39,45 @@ function ItemCard({ item, onClick, onDelete }) {
         <p className="text-sm text-left" style={{ color: colors.text }}>
           Frequency of Wear: {item.frequency_of_wear}
         </p>
-        {onDelete && (
+          {onUpdateFrequency && (
+            <div className="flex items-center gap-1">
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  onDelete(item.id);
+                  onUpdateFrequency(item.id, Math.max(0, (item.frequency_of_wear || 0) - 1));
                 }}
-                className="text-red-500 hover:text-red-700 p-1"
-                title="Delete item"
+                className="w-5 h-5 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200"
+                title="Decrease"
               >
-                <Trash2 size={14} />
+                <Minus size={12} />
               </button>
-            )}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onUpdateFrequency(item.id, (item.frequency_of_wear || 0) + 1);
+                }}
+                className="w-5 h-5 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200"
+                title="Increase"
+              >
+                <Plus size={12} />
+              </button>
+            </div>
+          )}
+        </div>
+        {onDelete && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(item.id);
+            }}
+            className="text-red-500 hover:text-red-700 p-1"
+            title="Delete item"
+          >
+            <Trash2 size={14} />
+          </button>
+        )}
       </div>
-    </div>
   );
 }
-
 
 export default ItemCard;
