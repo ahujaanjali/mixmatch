@@ -2,12 +2,22 @@ import { X } from 'lucide-react';
 import { colors } from '../constants/colors';
 import { categories } from '../constants/categories';
 
+// Categories where "size" doesn't apply. Adjust these two strings if your
+// `categories` constant uses different `value`s for headwear/accessories.
+const SIZELESS_CATEGORIES = ['Hat', 'Accessories'];
+const COLORLESS_CATEGORIES = ['Hat'];
+const COLOR_FIELD_LABEL_OVERRIDES = { Accessories: 'Details (belt, earrings, etc.)' };
+
 function CreateItemModal({ show, onClose, formData, setFormData, onSubmit }) {
   if (!show) return null;
 
   const handleChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
+
+  const showSize = !SIZELESS_CATEGORIES.includes(formData.category);
+  const showColor = !COLORLESS_CATEGORIES.includes(formData.category);
+  const colorLabel = COLOR_FIELD_LABEL_OVERRIDES[formData.category] || 'Color';
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
@@ -35,7 +45,7 @@ function CreateItemModal({ show, onClose, formData, setFormData, onSubmit }) {
               required
             />
           </div>
-          
+
           <div>
             <label className="block mb-1 text-left">Brand</label>
             <input
@@ -64,7 +74,17 @@ function CreateItemModal({ show, onClose, formData, setFormData, onSubmit }) {
               <label className="block mb-1 text-left">Category</label>
               <select
                 value={formData.category}
-                onChange={(e) => handleChange('category', e.target.value)}
+                onChange={(e) => {
+                  const newCategory = e.target.value;
+                  setFormData(prev => ({
+                    ...prev,
+                    category: newCategory,
+                    // clear out size if switching into a sizeless category
+                    size: SIZELESS_CATEGORIES.includes(newCategory) ? '' : prev.size,
+                    // clear out color if switching into a colorless category
+                    color: COLORLESS_CATEGORIES.includes(newCategory) ? '' : prev.color,
+                  }));
+                }}
                 className="w-full px-3 py-2 border rounded"
               >
                 {categories.filter(cat => cat.value !== "all").map(cat => (
@@ -76,25 +96,29 @@ function CreateItemModal({ show, onClose, formData, setFormData, onSubmit }) {
             </div>
           </div>
 
-          <div>
-            <label className="block mb-1 text-left">Size</label>
-            <input
-              type="text"
-              value={formData.size}
-              onChange={(e) => handleChange('size', e.target.value)}
-              className="w-full px-3 py-2 border rounded"
-            />
-          </div>
+          {showSize && (
+            <div>
+              <label className="block mb-1 text-left">Size</label>
+              <input
+                type="text"
+                value={formData.size}
+                onChange={(e) => handleChange('size', e.target.value)}
+                className="w-full px-3 py-2 border rounded"
+              />
+            </div>
+          )}
 
-          <div>
-            <label className="block mb-1 text-left">Color</label>
-            <input
-              type="text"
-              value={formData.color}
-              onChange={(e) => handleChange('color', e.target.value)}
-              className="w-full px-3 py-2 border rounded"
-            />
-          </div>
+          {showColor && (
+            <div>
+              <label className="block mb-1 text-left">{colorLabel}</label>
+              <input
+                type="text"
+                value={formData.color}
+                onChange={(e) => handleChange('color', e.target.value)}
+                className="w-full px-3 py-2 border rounded"
+              />
+            </div>
+          )}
 
           <div>
             <label className="block mb-1 text-left">Image URL</label>
