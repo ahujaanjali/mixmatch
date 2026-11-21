@@ -1,4 +1,6 @@
 import torch
+import math
+import torch.nn.functional as F
 import torch.nn as nn
 from torchvision.models import resnet18, ResNet18_Weights
 
@@ -28,7 +30,8 @@ class CompatibilityModel(nn.Module):
 
         # Learns how to convert a raw average pairwise distance into a
         # logit (pre-sigmoid score), rather than hardcoding a fixed scale.
-        self.compat_head = nn.Linear(1, 1)
+        self.log_scale = nn.Parameter(torch.tensor(math.log(5.0)))
+        self.shift = nn.Parameter(torch.tensor(1.0))
 
     def train(self, mode=True):
         super().train(mode)
@@ -50,8 +53,9 @@ class CompatibilityModel(nn.Module):
 
     def _score(self, emb):
         n = emb.shape[0]
-        if n < 2:                                # mean of zero pairs is NaN
+        if n < 2:
             raise ValueError("Outfit needs at least 2 items")
+        emb = F.normalize(emb, dim=1)            # unit length -> distances in [0, 2]
         i, j = torch.triu_indices(n, n, offset=1, device=emb.device)
-        avg = torch.cdist(emb, emb)[i, j].mean().view(1, 1)
-        return self.compat_head(avg).view(())
+        avg = torch.cdist(emb, emb)[i, j].mean()
+        return -self.log_scale.exp() * (avg - self.shift)
