@@ -65,13 +65,8 @@ if __name__ == '__main__':
         parquet_path='data/data/disjoint/train.parquet',
     )
 
-    # Sanity-check on a small subset first, before committing to a full epoch.
-    generator = torch.Generator().manual_seed(42)
-    indices = torch.randperm(len(full_dataset), generator=generator)[:2000].tolist()
-    small_dataset = Subset(full_dataset, indices)
-
     dataloader = DataLoader(
-        small_dataset,
+        full_dataset,
         batch_size=8,
         shuffle=True,
         collate_fn=collate_outfits,
@@ -83,7 +78,7 @@ if __name__ == '__main__':
     parquet_path='data/data/disjoint/validation.parquet',
     )
     val_generator = torch.Generator().manual_seed(0)
-    val_indices = torch.randperm(len(val_dataset), generator=val_generator)[:500].tolist()
+    val_indices = torch.randperm(len(val_dataset), generator=val_generator)[:2000].tolist()
 
     val_loader = DataLoader(
         Subset(val_dataset, val_indices),
@@ -102,7 +97,13 @@ if __name__ == '__main__':
         {'params': head_params, 'lr': 1e-3},       # new fc + compat_head: faster
     ])
 
+    best_auc = 0.0
     for epoch in range(5):
         avg_loss = train_one_epoch(model, dataloader, optimizer, device)
         val_auc = evaluate(model, val_loader, device)
         print(f"Epoch {epoch + 1}: loss = {avg_loss:.4f}, val AUC = {val_auc:.4f}")
+
+        if val_auc > best_auc:
+            best_auc = val_auc
+            torch.save(model.state_dict(), 'best_model.pt')
+            print("  -> new best, checkpoint saved")
