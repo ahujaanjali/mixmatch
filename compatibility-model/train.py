@@ -21,30 +21,21 @@ def get_device():
 def train_one_epoch(model, dataloader, optimizer, device):
     model.train()
     total_loss = 0.0
-    num_batches = 0
 
     for batch in dataloader:
         optimizer.zero_grad()
 
-        logits = []
-        labels = []
-        for images, label in batch:
-            images = images.to(device)
-            logit = model(images)
-            logits.append(logit)
-            labels.append(label.to(device))
+        images = [imgs.to(device) for imgs, _ in batch]
+        labels = torch.stack([lbl for _, lbl in batch]).to(device)
 
-        logits = torch.stack(logits)
-        labels = torch.stack(labels)
-
+        logits = model.forward_batch(images)
         loss = nn.functional.binary_cross_entropy_with_logits(logits, labels)
         loss.backward()
         optimizer.step()
 
         total_loss += loss.item()
-        num_batches += 1
 
-    return total_loss / num_batches
+    return total_loss / len(dataloader)
 
 
 if __name__ == '__main__':
@@ -58,7 +49,9 @@ if __name__ == '__main__':
     )
 
     # Sanity-check on a small subset first, before committing to a full epoch.
-    small_dataset = Subset(full_dataset, range(50))
+    generator = torch.Generator().manual_seed(42)
+    indices = torch.randperm(len(full_dataset), generator=generator)[:50].tolist()
+    small_dataset = Subset(full_dataset, indices)
 
     dataloader = DataLoader(
         small_dataset,
@@ -72,6 +65,6 @@ if __name__ == '__main__':
     trainable_params = [p for p in model.parameters() if p.requires_grad]
     optimizer = torch.optim.Adam(trainable_params, lr=1e-4)
 
-    for epoch in range(5):
+    for epoch in range(20):
         avg_loss = train_one_epoch(model, dataloader, optimizer, device)
         print(f"Epoch {epoch + 1}: avg loss = {avg_loss:.4f}")

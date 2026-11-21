@@ -30,23 +30,28 @@ class CompatibilityModel(nn.Module):
         # logit (pre-sigmoid score), rather than hardcoding a fixed scale.
         self.compat_head = nn.Linear(1, 1)
 
+    def train(self, mode=True):
+        super().train(mode)
+        # Keep BatchNorm on its ImageNet running stats so small per-outfit
+        # batches don't corrupt them. BN gamma/beta in layer3/4 still train.
+        for m in self.backbone.modules():
+            if isinstance(m, nn.BatchNorm2d):
+                m.eval()
+        return self
+
     def embed(self, images):
         # images: [num_items, 3, 224, 224] -> [num_items, embedding_dim]
         return self.backbone(images)
 
-    def forward(self, images):
-        embeddings = self.embed(images)
+    def forward_batch(self, outfits):           # list of [n_i, 3, 224, 224]
+        lengths = [o.shape[0] for o in outfits]
+        embeddings = self.embed(torch.cat(outfits))   # one backbone pass
+        return torch.stack([self._score(e) for e in torch.split(embeddings, lengths)])
 
-        # All pairwise distances between items in this outfit.
-        distances = torch.cdist(embeddings, embeddings)  # [n, n]
-
-        n = embeddings.shape[0]
-        # We only want each pair counted once (i < j), and never an
-        # item compared against itself (distance would be 0).
-        i, j = torch.triu_indices(n, n, offset=1)
-        pairwise_distances = distances[i, j]
-
-        avg_distance = pairwise_distances.mean().view(1, 1)
-        logit = self.compat_head(avg_distance).view(())
-
-        return logit
+    def _score(self, emb):
+        n = emb.shape[0]
+        if n < 2:                                # mean of zero pairs is NaN
+            raise ValueError("Outfit needs at least 2 items")
+        i, j = torch.triu_indices(n, n, offset=1, device=emb.device)
+        avg = torch.cdist(emb, emb)[i, j].mean().view(1, 1)
+        return self.compat_head(avg).view(())
