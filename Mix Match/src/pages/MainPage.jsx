@@ -5,9 +5,11 @@ import ItemsGrid from '../components/ItemsGrid';
 import CreateItemModal from '../components/CreateItemModal';
 import Header from '../components/Header';
 
-// Keep these in sync with CreateItemModal.jsx
-const SIZELESS_CATEGORIES = ['Hat', 'Accessories'];
-const COLORLESS_CATEGORIES = ['Hat'];
+// Keep these in sync with CreateItemModal.jsx.
+// These must match the lowercase strings in constants/categories.js
+// (and the backend's CategoryType enum) — not a separate naming scheme.
+const SIZELESS_CATEGORIES = ['headwear', 'accessories'];
+const COLORLESS_CATEGORIES = ['headwear'];
 
 function MainPage({ items, onCreateItem, onDeleteItem, onUpdateFrequency }) {
   console.log(items);
